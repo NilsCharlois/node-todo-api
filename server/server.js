@@ -44,8 +44,8 @@ app
   else {
     Todo
     .findById(id)
-    .then((doc)=>{
-      if(!doc)
+    .then((todo)=>{
+      if(!todo)
       {
         res
         .status(404)
@@ -53,7 +53,7 @@ app
       } else {
         res
         .status(200)
-        .send({doc})
+        .send({todo})
       }
     })
     .catch((e)=>res.status(400).send({}))
