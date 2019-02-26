@@ -9,6 +9,9 @@ var {User} = require('./models/user')
 // create server
 var app = express();
 
+// to get the port created by Heroku
+const port = process.env.PORT || 3000;
+
 // add middleware to parse body to json object
 app.use(bodyParser.json());
 
@@ -47,14 +50,40 @@ app
     .then((todo)=>{
       if(!todo)
       {
+        return
         res
         .status(404)
         .send({})
-      } else {
-        res
-        .status(200)
-        .send({todo})
       }
+      res
+      .status(200)
+      .send({todo})
+    })
+    .catch((e)=>res.status(400).send({}))
+  }
+});
+
+app
+.delete('/todos/:id', (req,res)=>{
+  var id = req.params.id;
+  if(!ObjectID.isValid(id))
+  {
+    return res.status(404).send();
+  }
+  else {
+    Todo
+    .findByIdAndRemove(id)
+    .then((todo)=>{
+      if(!todo) // if no item was deleted, need to check not null
+      {
+        return
+        res
+        .status(404)
+        .send({})
+      }
+      res
+      .status(200)
+      .send({todo})
     })
     .catch((e)=>res.status(400).send({}))
   }
@@ -82,11 +111,12 @@ app.get('/users', (req,res)=>{
   });
 });
 
-
+// 'heroku create' to create a heroku project
+// h'eroku addons:create mongolab:sandbox' to add the addon with sandbox plan
 
 // start server
-app.listen(3000, ()=>{
-  console.log('Started on port 3000');
+app.listen(port, ()=>{
+  console.log(`Started on port ${port}`);
 })
 
 module.exports = {app};
