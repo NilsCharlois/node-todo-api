@@ -1,5 +1,6 @@
 var express = require('express')
 const bodyParser = require('body-parser');
+const {ObjectID} = require('mongodb');
 
 var {mongoose} = require('./db/mongoose.js');
 var {Todo} = require('./models/todo')
@@ -11,12 +12,11 @@ var app = express();
 // add middleware to parse body to json object
 app.use(bodyParser.json());
 
-// create handler for post request
+// POST /todos
 app.post('/todos', (req, res)=>{
   var todo = new Todo({
     text:req.body.text
   });
-
   todo.save().then((doc)=>{
     res.send(doc)
   }, (err)=>{
@@ -24,10 +24,59 @@ app.post('/todos', (req, res)=>{
   });
 });
 
-
+// GET /todos
 app.get('/todos', (req,res)=>{
   Todo.find().then((todos)=>{
     res.send({todos});
+  }, (e)=>{
+    res.status(400).send(e)
+  });
+});
+
+// GET /todos/:id
+app
+.get('/todos/:id', (req,res)=>{
+  var id = req.params.id;
+  if(!ObjectID.isValid(id))
+  {
+    return res.status(404).send({});
+  }
+  else {
+    Todo
+    .findById(id)
+    .then((doc)=>{
+      if(!doc)
+      {
+        res
+        .status(404)
+        .send({})
+      } else {
+        res
+        .status(200)
+        .send({doc})
+      }
+    })
+    .catch((e)=>res.status(400).send({}))
+  }
+});
+
+// POST /users
+app.post('/users', (req, res)=>{
+  var user = new User({
+    email:req.body.email
+  });
+  user.save().then((doc)=>{
+    res.send(doc)
+  }, (err)=>{
+    res.status(400).send(err);
+  });
+});
+
+
+// GET /users
+app.get('/users', (req,res)=>{
+  User.find().then((users)=>{
+    res.send({users});
   }, (e)=>{
     res.status(400).send(e)
   });
