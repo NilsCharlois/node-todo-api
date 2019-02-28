@@ -19,50 +19,46 @@ const port = process.env.PORT || 3000;
 app.use(bodyParser.json());
 
 // POST /todos
-app.post('/todos', (req, res)=>{
-  var todo = new Todo({
-    text:req.body.text
-  });
-  todo.save().then((doc)=>{
-    res.send(doc)
-  }, (err)=>{
-    res.status(400).send(err);
-  });
+app
+.post('/todos', (req, res)=>{
+  var todo = new Todo({text:req.body.text});
+  try {
+    let doc = await todo.save();
+    res.send(doc);
+  } catch (e) {
+    res.status(400).send(e);
+  }
 });
 
 // GET /todos
-app.get('/todos', (req,res)=>{
-  Todo.find().then((todos)=>{
+app
+.get('/todos', (req,res)=>{
+  try {
+    const todos = await Todo.find();
     res.send({todos});
-  }, (e)=>{
-    res.status(400).send(e)
-  });
+  } catch (e) {
+    res.status(400).send(e);
+  }
 });
 
 // GET /todos/:id
 app
-.get('/todos/:id', (req,res)=>{
+.get('/todos/:id', (req,res)=> {
   var id = req.params.id;
   if(!ObjectID.isValid(id))
   {
     return res.status(404).send({});
   }
   else {
-    Todo
-    .findById(id)
-    .then((todo)=>{
-      if(!todo)
-      {
-        return
-        res
-        .status(404)
-        .send({})
+    try {
+      const todo = await Todo.findById(id);
+      if(!todo) {
+        return res.status(404).send({})
       }
-      res
-      .status(200)
-      .send({todo})
-    })
-    .catch((e)=>res.status(400).send({}))
+      res.status(200).send({todo})
+    } catch (e) {
+      res.status(400).send({})
+    }
   }
 });
 
